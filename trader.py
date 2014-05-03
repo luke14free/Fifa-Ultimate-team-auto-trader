@@ -70,7 +70,7 @@ def emptyWatchList():
             #print "Could not delete from WL: ", item
             time.sleep(3)
     #print "WL size:", wl_size,"/ 100"
-    return wl_size
+    return len(wl)
 
 def sellAllContracts():
     tp_size = emptyTradePile()
@@ -105,10 +105,11 @@ def sellAllContracts():
 
 while 1:
     try:
+        emptyTradePile()
         emptyWatchList()
-	emtpyTradePile()
     except:
-	pass
+        pass
+
     balance()
 
     if (bought_something or len(fut.watchlist()) > 5) and len(fut.tradepile()) < 30: #wait for at least 3 spots to open
