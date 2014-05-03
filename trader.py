@@ -46,10 +46,7 @@ def emptyTradePile():
                 print "Could not delete from TL: ", item
                 time.sleep(3)
     """
-    try:
-        fut.relist(clean=True)
-    except:
-        pass
+    fut.relist(clean=True)
     tp_size = len(fut.tradepile())
     #print "Tradepile size:", tp_size,"/ 30"
     return tp_size
@@ -122,11 +119,10 @@ while 1:
         print "Waiting 120 secs.."
         fut.keepalive()
         i = -1
+        emptyTradePile()
+        emptyWatchList()
         time.sleep(120)
-        try:
-            fut.relist(clean=True)
-        except:
-            pass
+
     i+=1
 
     print "DEBUG: Iteration n.", i
