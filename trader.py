@@ -36,7 +36,7 @@ def emptyTradePile():
     tp = fut.tradepile()
     print "TP size:", len(tp)
     for item in tp:
-        if item['expires'] == "closed" and item['expires'] == -1:
+        if item['tradeState'] == "closed" and item['expires'] == -1:
             try:
                 deleted = fut.tradepileDelete(item['tradeId'])
                 print "Deleted: ", item['tradeId'], " - ", deleted
