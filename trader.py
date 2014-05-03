@@ -29,23 +29,21 @@ def balance():
 
 
 def emptyTradePile():
-    """
-    print "Handshake"
+    #print "Handshake"
     fut.keepalive()
-    print "Success"
-    print "Emptying tradepile"
+    #print "Success"
+    #print "Emptying tradepile"
     tp = fut.tradepile()
     print "TP size:", len(tp)
     for item in tp:
-        if item['tradeState'] == "closed":
+        if item['expires'] == "closed" and item['expires'] == -1:
             try:
                 deleted = fut.tradepileDelete(item['tradeId'])
                 print "Deleted: ", item['tradeId'], " - ", deleted
                 time.sleep(3)
             except:
-                print "Could not delete from TL: ", item
+                #print "Could not delete from TL: ", item
                 time.sleep(3)
-    """
     fut.relist(clean=True)
     tp_size = len(fut.tradepile())
     #print "Tradepile size:", tp_size,"/ 30"
@@ -119,10 +117,9 @@ while 1:
         print "Waiting 120 secs.."
         fut.keepalive()
         i = -1
+        time.sleep(120)
         emptyTradePile()
         emptyWatchList()
-        time.sleep(120)
-
     i+=1
 
     print "DEBUG: Iteration n.", i
