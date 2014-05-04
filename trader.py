@@ -18,6 +18,11 @@ while not fut:
 
 print "Connected.."
 
+def patched_tradepileDelete(trade_id):
+    url = '{url}/{par}'.format(url=fut.urls['fut']['TradeInfo'], par=trade_id)
+    fut.__delete__(url)  # returns nothing
+    return True
+
 def balance():
     tp = fut.tradepile()
     wl = fut.watchlist()
@@ -39,7 +44,7 @@ def emptyTradePile():
     for item in tp:
         if item['tradeState'] == "closed":
             #try:
-            deleted = fut.tradepileDelete(item['tradeId'])
+            deleted = patched_tradepileDelete(item['tradeId'])
             print "Deleted: ", item['tradeId'], " - ", deleted
             time.sleep(3)
             #except:
