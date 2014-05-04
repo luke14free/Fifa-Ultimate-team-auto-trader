@@ -21,7 +21,7 @@ print "Connected.."
 def balance():
     tp = fut.tradepile()
     wl = fut.watchlist()
-    t = filter(lambda i: i['resourceId'] == 1615613739, tp)
+    t = filter(lambda i: i['resourceId'] == 1615613739 and i['tradeState'] != 'closed', tp)
     w = filter(lambda i: i['bidState'] == "highest" and i['resourceId'] == 1615613739, wl)
     credits = fut.credits
     #os.system("clear")
@@ -33,18 +33,18 @@ def emptyTradePile():
     fut.keepalive()
     #print "Success"
     #print "Emptying tradepile"
+    fut.relist(clean=False)
     tp = fut.tradepile()
     print "TP size:", len(tp)
     for item in tp:
-        if item['tradeState'] == "closed" and item['expires'] == -1:
+        if item['tradeState'] == "closed":
             try:
                 deleted = fut.tradepileDelete(item['tradeId'])
                 print "Deleted: ", item['tradeId'], " - ", deleted
                 time.sleep(3)
             except:
-                #print "Could not delete from TL: ", item
+                print "Could not delete from TL: ", item
                 time.sleep(3)
-    fut.relist(clean=False)
     tp_size = len(fut.tradepile())
     #print "Tradepile size:", tp_size,"/ 30"
     return tp_size
@@ -99,12 +99,9 @@ def sellAllContracts():
 
 
 while 1:
-    try:
-        emptyTradePile()
-        emptyWatchList()
-    except:
-        pass
-
+    emptyTradePile()
+    emptyWatchList()
+    
     balance()
 
     if (bought_something or len(fut.watchlist()) > 5) and len(fut.tradepile()) < 30: #wait for at least 3 spots to open
