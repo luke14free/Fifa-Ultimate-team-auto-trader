@@ -38,13 +38,13 @@ def emptyTradePile():
     print "TP size:", len(tp)
     for item in tp:
         if item['tradeState'] == "closed":
-            try:
-                deleted = fut.tradepileDelete(item['tradeId'])
-                print "Deleted: ", item['tradeId'], " - ", deleted
-                time.sleep(3)
-            except:
-                print "Could not delete from TL: ", item
-                time.sleep(3)
+            #try:
+            deleted = fut.tradepileDelete(item['tradeId'])
+            print "Deleted: ", item['tradeId'], " - ", deleted
+            time.sleep(3)
+            #except:
+            #print "Could not delete from TL: ", item
+            #time.sleep(3)
     tp_size = len(fut.tradepile())
     #print "Tradepile size:", tp_size,"/ 30"
     return tp_size
@@ -101,7 +101,7 @@ def sellAllContracts():
 while 1:
     emptyTradePile()
     emptyWatchList()
-    
+
     balance()
 
     if (bought_something or len(fut.watchlist()) > 5) and len(fut.tradepile()) < 30: #wait for at least 3 spots to open
