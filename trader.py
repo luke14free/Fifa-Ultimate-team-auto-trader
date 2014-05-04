@@ -44,7 +44,7 @@ def emptyTradePile():
             except:
                 #print "Could not delete from TL: ", item
                 time.sleep(3)
-    fut.relist(clean=True)
+    fut.relist(clean=False)
     tp_size = len(fut.tradepile())
     #print "Tradepile size:", tp_size,"/ 30"
     return tp_size
