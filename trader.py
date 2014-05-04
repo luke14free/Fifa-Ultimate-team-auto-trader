@@ -1,6 +1,7 @@
 import fut14
 import time
 import os
+import config
 
 i=-1
 successful_bids = []
@@ -10,7 +11,7 @@ bought_something = False
 
 while not fut:
     try:
-        fut = fut14.Core('luke14free@sharklasers.com', 'Londra14', 'corletto', platform='ps3', debug=True)
+        fut = config.connect()
     except:
         print "Failed connecting, retrying in %d.." % backoff
         backoff += 5
