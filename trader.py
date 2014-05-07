@@ -2,6 +2,8 @@ import fut14
 import time
 import os
 import config
+import datetime
+import pytz
 
 i=-1
 successful_bids = []
@@ -18,6 +20,12 @@ while not fut:
         time.sleep(backoff)
 
 print "Connected.."
+
+def isSellTime():
+    tz = pytz.timezone('Europe/London')
+    if datetime.datetime.now(tz).hour in range (11, 22):
+        return True
+    return False
 
 def patched_tradepileDelete(trade_id):
     url = '{url}/{par}'.format(url=fut.urls['fut']['TradeInfo'], par=trade_id)
@@ -81,7 +89,7 @@ def sellAllContracts():
     fut.keepalive()
     #print "Success"
     print "DEBUG: Selling phase"
-    while successful_bids and tp_size < 30:
+    while successful_bids and tp_size < 40:
         item = successful_bids.pop()
         if item['currentBid'] == 150 and item['itemType'] == 'contract' and item['expires'] == -1 and item['bidState'] == 'highest': #then we were the last bidders and we can sell!
             try:
@@ -104,47 +112,17 @@ def sellAllContracts():
     print "DEBUG: Done selling! Tp size: ", tp_size
 
 
-while 1:
-    emptyTradePile()
-    emptyWatchList()
-
-    balance()
-
-    if (bought_something or len(fut.watchlist()) > 5) and len(fut.tradepile()) < 30: #wait for at least 3 spots to open
-        sellAllContracts()
-        bought_something = False
-
-    while fut.credits < 150 or (len(fut.watchlist()) >= 96 and len(fut.tradepile()) >= 28):
-        #Nothing to do.. Wait for a minute or so and check again
-        balance()
-        print "Waiting 120 secs.."
-        fut.keepalive()
-        i = -1
-        time.sleep(120)
-        emptyTradePile()
-        emptyWatchList()
-    i+=1
-
-    print "DEBUG: Iteration n.", i
-    if i % 5 == 0:
-        #print "Handshake"
-        fut.keepalive()
-        #print "Success"
-
-    if i >= 10:
-        i = 0 #go back to newest bids
-
-    print
+def doBuy(page = 0):
     try:
-        players = fut.searchAuctions('development', category='contract', start=i*16, level='gold', max_price = 150)
+        players = fut.searchAuctions('development', category='contract', start=page*16, level='gold', max_price = 150)
     except:
         fut.keepalive()
-        players = fut.searchAuctions('development', category='contract', start=i*16, level='gold', max_price = 150)
+        players = fut.searchAuctions('development', category='contract', start=page*16, level='gold', max_price = 150)
 
     if not players:
         #print "Nothing found"
         time.sleep(5)
-        continue
+        pass
     for player in players:
         #bid_price = max([(player['currentBid'] + 50), (player['startingBid'])])
         #if player['discardValue'] > 310 or max([(player['currentBid'] + 50), (player['startingBid'])]) > 250: continue
@@ -176,6 +154,47 @@ while 1:
             continue #Too late to bid for others
         else:
             1
-            #print "Not bidding for", player['discardValue'], "at", bid_price, "exp", player['expires'], "RID:", player['resourceId'], "type: ", 'allenatore' if player['resourceId'] != 1615613739 else 'giocatore'
-    #print "Waiting 3 seconds.."
-    time.sleep(3)
+            # print "Not bidding for", player['discardValue'], "at", bid_price, "exp", player['expires'], "RID:", player['resourceId'], "type: ", 'allenatore' if player['resourceId'] != 1615613739 else 'giocatore'
+
+
+def doSell():
+    if len(fut.watchlist()) > 5 and len(fut.tradepile()) < 40:
+        sellAllContracts()
+
+    while fut.credits < 150 or len(fut.tradepile()) >= 38:
+        #Nothing to do.. Wait for a minute or so and check again
+        balance()
+        min_expires = min([i for i in fut.tradepile() if i['expires'] > -1], key=lambda x: x['expires'])['expires']
+        print "Waiting %d secs.." % min_expires
+        fut.keepalive()
+        if min_expires > 600:  # more than 10 minutes
+            # Then kill the connection and break the program,
+            # supervisor will restart the script when something expires/is sold
+            # del fut
+            1
+        time.sleep(min_expires)
+        emptyTradePile()
+        emptyWatchList()
+
+if __name__ == "__main__":
+    while 1:
+        emptyTradePile()
+        emptyWatchList()
+        balance()
+        time.sleep(3)
+        if isSellTime() and (len(fut.tradepile()) + len(fut.watchlist())) > 50:
+            print "DEBUG: Sell time!"
+            doSell()
+
+        else:
+            i += 1
+            print "DEBUG: Buy time! Iteration n.", i
+            if i % 5 == 0:
+                # print "Handshake"
+                fut.keepalive()
+                # print "Success"
+            if i >= 10:
+                i = 0  # go back to newest bids
+            doBuy(i)
+        # print "Waiting 3 seconds.."
+        time.sleep(3)
