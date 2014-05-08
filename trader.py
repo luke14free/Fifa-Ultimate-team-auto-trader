@@ -186,9 +186,9 @@ if __name__ == "__main__":
             print "DEBUG: Sell time!"
             doSell()
 
-        else:
+        elif not isSellTime() and len(fut.watchlist()) <= 95:
             i += 1
-            print "DEBUG: Buy time! Iteration n.", i
+            print "DEBUG: Buy and (small sell) time! Iteration n.", i
             if i % 5 == 0:
                 # print "Handshake"
                 fut.keepalive()
@@ -196,5 +196,10 @@ if __name__ == "__main__":
             if i >= 10:
                 i = 0  # go back to newest bids
             doBuy(i)
+
+        elif not isSellTime() and len(fut.watchlist()) >95:
+            while not isSellTime():
+                print "I bought all I needed to buy, waiting for sell time!"
+                time.sleep(60*20) #sleep for 20 minutes
         # print "Waiting 3 seconds.."
         time.sleep(3)
